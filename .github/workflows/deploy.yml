@@ -61,10 +61,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 5. Upload the new zip directly to Lambda
+      # 5. Upload zip to S3 (direct upload limit is 69MB — S3 has no limit)
+      - name: Upload to S3
+        run: |
+          aws s3 cp lambda_package.zip s3://${{ secrets.S3_BUCKET }}/lambda_package.zip
+
+      # 6. Tell Lambda to pull the new code from S3
       - name: Deploy to Lambda
         run: |
           aws lambda update-function-code \
             --function-name market-reporter \
-            --zip-file fileb://lambda_package.zip
+            --s3-bucket ${{ secrets.S3_BUCKET }} \
+            --s3-key lambda_package.zip
           echo "✓ Deployed successfully!"
