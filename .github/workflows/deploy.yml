@@ -81,4 +81,10 @@ jobs:
             --s3-bucket ${{ secrets.S3_BUCKET }} \
             --s3-key lambda_package.zip
 
-          echo "✓ Both functions deployed successfully!"
+          # Unsubscribe function
+          aws lambda update-function-code \
+            --function-name market-reporter-unsubscribe \
+            --s3-bucket ${{ secrets.S3_BUCKET }} \
+            --s3-key lambda_package.zip
+
+          echo "✓ All 3 functions deployed successfully!"

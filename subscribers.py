@@ -24,6 +24,12 @@ def get_active_subscribers():
     return response.get("Items", [])
 
 
+def get_subscriber(email):
+    """Return a subscriber by email, or None if not found."""
+    response = _table().get_item(Key={"email": email})
+    return response.get("Item")
+
+
 def add_subscriber(email, name="", markets=None, language="en"):
     """Add or update a subscriber."""
     if markets is None:

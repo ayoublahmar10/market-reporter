@@ -243,9 +243,21 @@
           body: JSON.stringify({ email, name, markets }),
         });
 
+        if (res.status === 409) {
+          msg.className = "message error";
+          msg.textContent = "This email is already subscribed to the same markets.";
+          btn.disabled = false;
+          btn.textContent = "Subscribe — it's free";
+          return;
+        }
+
         if (res.ok) {
+          const data = await res.json();
+          const updated = data.message && data.message.includes("updated");
           msg.className = "message success";
-          msg.textContent = "✓ Subscribed! Check your inbox tomorrow morning.";
+          msg.textContent = updated
+            ? "✓ Preferences updated successfully!"
+            : "✓ Subscribed! Check your inbox for a confirmation email.";
           document.getElementById("form").reset();
           document.querySelectorAll(".market-btn").forEach(b => b.classList.add("selected"));
         } else {
