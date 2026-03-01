@@ -20,6 +20,27 @@ MARKET_LABELS = {
     "Crypto": "₿ Crypto",
 }
 
+FREQUENCY_LABELS = {
+    "daily":  "📅 Daily",
+    "weekly": "📆 Weekly (Monday)",
+}
+
+TIME_LABELS = {
+    "morning":   "🌅 8h Morning",
+    "afternoon": "📉 16h After-market",
+}
+
+LANGUAGE_LABELS = {
+    "en": "English",
+    "fr": "Français",
+}
+
+PROFILE_LABELS = {
+    "beginner":     "🌱 Beginner",
+    "intermediate": "📊 Intermediate",
+    "expert":       "🎯 Expert",
+}
+
 CORS_HEADERS = {
     "Access-Control-Allow-Origin":  "*",
     "Access-Control-Allow-Methods": "POST,OPTIONS",
@@ -65,7 +86,9 @@ def handler(event, context):
                            language=language, frequency=frequency,
                            report_time=report_time, profile=profile)
             print(f"Updated subscriber: {email} | markets: {markets}")
-            _send_update_confirmation(email=email, name=name, markets=markets)
+            _send_update_confirmation(email=email, name=name, markets=markets,
+                                      frequency=frequency, report_time=report_time,
+                                      language=language, profile=profile)
             return {
                 "statusCode": 200,
                 "headers": CORS_HEADERS,
@@ -77,7 +100,9 @@ def handler(event, context):
                        report_time=report_time, profile=profile)
         print(f"New subscriber: {email} | markets: {markets} | lang: {language} | freq: {frequency} | time: {report_time} | profile: {profile}")
 
-        _send_confirmation(email=email, name=name, markets=markets)
+        _send_confirmation(email=email, name=name, markets=markets,
+                           frequency=frequency, report_time=report_time,
+                           language=language, profile=profile)
 
         return {
             "statusCode": 200,
@@ -98,7 +123,9 @@ def _unsubscribe_link(email):
     return f'<a href="{url}" style="color:#60a5fa">Unsubscribe</a>'
 
 
-def _send_confirmation(email, name, markets):
+def _send_confirmation(email, name, markets,
+                       frequency="daily", report_time="morning",
+                       language="en", profile="beginner"):
     gmail_user     = os.environ.get("GMAIL_USER", "")
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "")
 
@@ -106,7 +133,7 @@ def _send_confirmation(email, name, markets):
         print("  Gmail not configured — skipping confirmation email")
         return
 
-    greeting   = f"Hi {name}," if name else "Hi,"
+    greeting    = f"Hi {name}," if name else "Hi,"
     market_list = "".join(
         f"<li style='padding:4px 0'>{MARKET_LABELS.get(m, m)}</li>"
         for m in markets
@@ -119,16 +146,30 @@ def _send_confirmation(email, name, markets):
         <h1 style="font-size:1.4rem;margin:0 0 8px;color:#1e293b">You're subscribed!</h1>
         <p style="color:#64748b;margin:0 0 24px">{greeting} Welcome to Market Reporter.</p>
 
-        <p style="color:#374151;margin:0 0 8px">You'll receive daily reports for:</p>
-        <ul style="color:#374151;padding-left:20px;margin:0 0 24px">
+        <p style="color:#374151;margin:0 0 8px">Markets:</p>
+        <ul style="color:#374151;padding-left:20px;margin:0 0 20px">
           {market_list}
         </ul>
 
         <div style="background:#f1f5f9;border-radius:8px;padding:12px 16px;margin-bottom:20px">
-          <p style="margin:0;font-size:0.9rem;color:#475569">
-            🕒 Your daily report will arrive every day at<br>
-            <strong style="color:#1e293b">7:30 AM every day</strong>
-          </p>
+          <table style="width:100%;font-size:0.9rem;color:#475569;border-collapse:collapse">
+            <tr>
+              <td style="padding:4px 0">📅 Frequency</td>
+              <td style="padding:4px 0;text-align:right;color:#1e293b"><strong>{FREQUENCY_LABELS.get(frequency, frequency)}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0">🕒 Delivery</td>
+              <td style="padding:4px 0;text-align:right;color:#1e293b"><strong>{TIME_LABELS.get(report_time, report_time)}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0">🌐 Language</td>
+              <td style="padding:4px 0;text-align:right;color:#1e293b"><strong>{LANGUAGE_LABELS.get(language, language)}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0">👤 Profile</td>
+              <td style="padding:4px 0;text-align:right;color:#1e293b"><strong>{PROFILE_LABELS.get(profile, profile)}</strong></td>
+            </tr>
+          </table>
         </div>
 
         <p style="color:#64748b;font-size:0.9rem;margin:0">
@@ -155,7 +196,9 @@ def _send_confirmation(email, name, markets):
     print(f"  Confirmation email sent to {email}")
 
 
-def _send_update_confirmation(email, name, markets):
+def _send_update_confirmation(email, name, markets,
+                              frequency="daily", report_time="morning",
+                              language="en", profile="beginner"):
     gmail_user     = os.environ.get("GMAIL_USER", "")
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "")
 
@@ -176,10 +219,31 @@ def _send_update_confirmation(email, name, markets):
         <h1 style="font-size:1.4rem;margin:0 0 8px;color:#1e293b">Preferences updated!</h1>
         <p style="color:#64748b;margin:0 0 24px">{greeting} Your Market Reporter preferences have been updated.</p>
 
-        <p style="color:#374151;margin:0 0 8px">You will now receive reports for:</p>
-        <ul style="color:#374151;padding-left:20px;margin:0 0 24px">
+        <p style="color:#374151;margin:0 0 8px">Markets:</p>
+        <ul style="color:#374151;padding-left:20px;margin:0 0 20px">
           {market_list}
         </ul>
+
+        <div style="background:#f1f5f9;border-radius:8px;padding:12px 16px;margin-bottom:20px">
+          <table style="width:100%;font-size:0.9rem;color:#475569;border-collapse:collapse">
+            <tr>
+              <td style="padding:4px 0">📅 Frequency</td>
+              <td style="padding:4px 0;text-align:right;color:#1e293b"><strong>{FREQUENCY_LABELS.get(frequency, frequency)}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0">🕒 Delivery</td>
+              <td style="padding:4px 0;text-align:right;color:#1e293b"><strong>{TIME_LABELS.get(report_time, report_time)}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0">🌐 Language</td>
+              <td style="padding:4px 0;text-align:right;color:#1e293b"><strong>{LANGUAGE_LABELS.get(language, language)}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0">👤 Profile</td>
+              <td style="padding:4px 0;text-align:right;color:#1e293b"><strong>{PROFILE_LABELS.get(profile, profile)}</strong></td>
+            </tr>
+          </table>
+        </div>
 
         <p style="color:#64748b;font-size:0.9rem;margin:0">
           Changes take effect from tomorrow's report.
