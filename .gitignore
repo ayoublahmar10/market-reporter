@@ -1,0 +1,22 @@
+# Secrets
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+
+# Generated reports
+reports/
+
+# Lambda build artifacts
+lambda_package/
+lambda_package.zip
+
+# IDE
+.vscode/
+.claude/
