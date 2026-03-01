@@ -71,17 +71,23 @@ def handler(event, context):
         if not markets:
             return _error(400, "Select at least one market")
 
-        # Check if already subscribed with the same markets
+        # Check if already subscribed
         existing = get_subscriber(email)
         if existing and existing.get("active"):
-            existing_markets = sorted(existing.get("markets", []))
-            if existing_markets == sorted(markets):
+            same_prefs = (
+                sorted(existing.get("markets", [])) == sorted(markets)
+                and existing.get("frequency", "daily")   == frequency
+                and existing.get("report_time", "morning") == report_time
+                and existing.get("language", "en")       == language
+                and existing.get("profile", "beginner")  == profile
+            )
+            if same_prefs:
                 return {
                     "statusCode": 409,
                     "headers": CORS_HEADERS,
                     "body": json.dumps({"error": "This email is already subscribed to the same markets"}),
                 }
-            # Different markets → update preferences + send update email
+            # Any preference changed → update
             add_subscriber(email=email, name=name, markets=markets,
                            language=language, frequency=frequency,
                            report_time=report_time, profile=profile)
