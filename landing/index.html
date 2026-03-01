@@ -135,7 +135,19 @@
     }
 
     button[type="submit"]:hover { opacity: 0.9; }
-    button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
+    button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
 
     .message {
       margin-top: 16px;
@@ -284,7 +296,7 @@
       }
 
       btn.disabled = true;
-      btn.textContent = "Subscribing...";
+      btn.innerHTML = '<span class="spinner"></span>Subscribing...';
       msg.className = "message";
 
       try {
@@ -303,6 +315,7 @@
         }
 
         if (res.ok) {
+          btn.textContent = "Subscribe — it's free";
           const data = await res.json();
           const updated = data.message && data.message.includes("updated");
           msg.className = "message success";
@@ -323,6 +336,7 @@
         msg.textContent = "Something went wrong. Please try again.";
         btn.disabled = false;
         btn.textContent = "Subscribe — it's free";
+
       }
     });
   </script>
