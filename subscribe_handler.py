@@ -12,8 +12,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from subscribers import add_subscriber, get_subscriber
 
-API_BASE_URL = os.environ.get("API_BASE_URL", "")
-
 ALLOWED_MARKETS = {"US", "Europe", "Crypto"}
 
 MARKET_LABELS = {
@@ -84,6 +82,14 @@ def handler(event, context):
         return _error(500, "Internal server error")
 
 
+def _unsubscribe_link(email):
+    api_url = os.environ.get("API_BASE_URL", "")
+    if not api_url:
+        return ""
+    url = f"{api_url}/unsubscribe?email={urllib.parse.quote(email)}"
+    return f'<a href="{url}" style="color:#60a5fa">Unsubscribe</a>'
+
+
 def _send_confirmation(email, name, markets):
     gmail_user     = os.environ.get("GMAIL_USER", "")
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "")
@@ -123,7 +129,7 @@ def _send_confirmation(email, name, markets):
       </div>
       <p style="color:#94a3b8;font-size:0.8rem;text-align:center;margin-top:16px">
         Market Reporter — Daily financial intelligence<br>
-        {f'<a href="{API_BASE_URL}/unsubscribe?email={urllib.parse.quote(email)}" style="color:#60a5fa">Unsubscribe</a>' if API_BASE_URL else ""}
+        {_unsubscribe_link(email)}
       </p>
     </div>
     """
@@ -173,7 +179,7 @@ def _send_update_confirmation(email, name, markets):
       </div>
       <p style="color:#94a3b8;font-size:0.8rem;text-align:center;margin-top:16px">
         Market Reporter — Daily financial intelligence<br>
-        {f'<a href="{API_BASE_URL}/unsubscribe?email={urllib.parse.quote(email)}" style="color:#60a5fa">Unsubscribe</a>' if API_BASE_URL else ""}
+        {_unsubscribe_link(email)}
       </p>
     </div>
     """
