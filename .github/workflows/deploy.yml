@@ -66,11 +66,19 @@ jobs:
         run: |
           aws s3 cp lambda_package.zip s3://${{ secrets.S3_BUCKET }}/lambda_package.zip
 
-      # 6. Tell Lambda to pull the new code from S3
+      # 6. Deploy both Lambda functions from S3
       - name: Deploy to Lambda
         run: |
+          # Main reporter function (daily reports)
           aws lambda update-function-code \
             --function-name market-reporter \
             --s3-bucket ${{ secrets.S3_BUCKET }} \
             --s3-key lambda_package.zip
-          echo "✓ Deployed successfully!"
+
+          # Subscription API function (signup form)
+          aws lambda update-function-code \
+            --function-name market-reporter-subscribe \
+            --s3-bucket ${{ secrets.S3_BUCKET }} \
+            --s3-key lambda_package.zip
+
+          echo "✓ Both functions deployed successfully!"

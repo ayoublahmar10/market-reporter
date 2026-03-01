@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Market Reporter — Daily Financial Reports</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2d3148;
+      border-radius: 16px;
+      padding: 48px 40px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+    }
+
+    .logo { font-size: 2rem; margin-bottom: 8px; }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    .features {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+
+    .badge {
+      background: #1e2535;
+      border: 1px solid #2d3148;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #94a3b8;
+      margin-bottom: 6px;
+      margin-top: 16px;
+    }
+
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid #2d3148;
+      background: #0f1117;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: #60a5fa; }
+
+    .markets-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #94a3b8;
+      margin-top: 16px;
+      margin-bottom: 10px;
+    }
+
+    .markets {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .market-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #2d3148;
+      background: #0f1117;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .market-btn.selected {
+      border-color: #60a5fa;
+      background: #1e3a5f;
+      color: #60a5fa;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      margin-top: 28px;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #3b82f6, #7c3aed);
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    button[type="submit"]:hover { opacity: 0.9; }
+    button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .message {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .message.success {
+      background: #14532d;
+      border: 1px solid #16a34a;
+      color: #4ade80;
+      display: block;
+    }
+
+    .message.error {
+      background: #450a0a;
+      border: 1px solid #dc2626;
+      color: #f87171;
+      display: block;
+    }
+
+    .footer {
+      margin-top: 24px;
+      font-size: 0.8rem;
+      color: #4b5563;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">📈</div>
+    <h1>Market Reporter</h1>
+    <p class="subtitle">
+      Get a personalized daily financial report delivered to your inbox —
+      US markets, Europe, and Crypto.
+    </p>
+
+    <div class="features">
+      <span class="badge">🤖 AI analysis</span>
+      <span class="badge">📊 Top picks</span>
+      <span class="badge">⚡ Alerts</span>
+      <span class="badge">💱 EUR/USD</span>
+      <span class="badge">Free</span>
+    </div>
+
+    <form id="form">
+      <label for="name">First name</label>
+      <input type="text" id="name" placeholder="John" />
+
+      <label for="email">Email address *</label>
+      <input type="email" id="email" placeholder="john@example.com" required />
+
+      <div class="markets-label">Markets you want to follow *</div>
+      <div class="markets">
+        <div class="market-btn selected" data-market="US">🇺🇸 US</div>
+        <div class="market-btn selected" data-market="Europe">🇪🇺 Europe</div>
+        <div class="market-btn selected" data-market="Crypto">₿ Crypto</div>
+      </div>
+
+      <button type="submit" id="btn">Subscribe — it's free</button>
+    </form>
+
+    <div class="message" id="msg"></div>
+
+    <div class="footer">No spam. Unsubscribe anytime.</div>
+  </div>
+
+  <script>
+    // ── Replace with your API Gateway URL after deployment ──────────────────
+    const API_URL = "REPLACE_WITH_API_GATEWAY_URL";
+    // ────────────────────────────────────────────────────────────────────────
+
+    // Market toggle buttons
+    document.querySelectorAll(".market-btn").forEach(btn => {
+      btn.addEventListener("click", () => btn.classList.toggle("selected"));
+    });
+
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email   = document.getElementById("email").value.trim();
+      const name    = document.getElementById("name").value.trim();
+      const markets = [...document.querySelectorAll(".market-btn.selected")]
+                        .map(b => b.dataset.market);
+      const msg     = document.getElementById("msg");
+      const btn     = document.getElementById("btn");
+
+      if (!email) return;
+      if (markets.length === 0) {
+        msg.className = "message error";
+        msg.textContent = "Please select at least one market.";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Subscribing...";
+      msg.className = "message";
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, name, markets }),
+        });
+
+        if (res.ok) {
+          msg.className = "message success";
+          msg.textContent = "✓ Subscribed! Check your inbox tomorrow morning.";
+          document.getElementById("form").reset();
+          document.querySelectorAll(".market-btn").forEach(b => b.classList.add("selected"));
+        } else {
+          throw new Error(await res.text());
+        }
+      } catch (err) {
+        msg.className = "message error";
+        msg.textContent = "Something went wrong. Please try again.";
+        btn.disabled = false;
+        btn.textContent = "Subscribe — it's free";
+      }
+    });
+  </script>
+</body>
+</html>

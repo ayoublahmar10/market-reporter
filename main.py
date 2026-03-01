@@ -16,10 +16,19 @@ from emailer import send_report
 from alerts import check_alerts
 from screener import get_top_picks
 from portfolio_advisor import get_portfolio_advice
+from subscribers import get_active_subscribers
 
 # ── Data split ────────────────────────────────────────────────────────────────
 US_CATEGORIES     = {"Indices US", "Actions Tech US", "Actions US"}
 EUROPE_CATEGORIES = {"Indices Europe", "ETFs", "Matières Premières", "Actions Europe"}
+
+# Fallback subscriber when DynamoDB is not configured (local dev / single user)
+FALLBACK_SUBSCRIBER = {
+    "email":    os.environ.get("EMAIL_TO", ""),
+    "name":     "Admin",
+    "markets":  ["US", "Europe", "Crypto"],
+    "language": "en",
+}
 
 
 def _filter(market_data, categories):
@@ -40,10 +49,11 @@ def save_report(html: str, suffix: str) -> str:
     return path
 
 
-def _build_and_send(scope, market_data, crypto_data, news, alerts, eur_usd):
+def _build_and_send(scope, market_data, crypto_data, news, alerts, eur_usd, subscriber):
     date_str = datetime.now().strftime("%d/%m/%Y")
     label = {"US": "🇺🇸 US", "Europe": "🇪🇺 Europe", "Crypto": "₿ Crypto"}[scope]
-    print(f"\n  ── {label} ──")
+    name = subscriber.get("name", "")
+    email = subscriber["email"]
 
     top_picks = get_top_picks(market_data, scope=scope) if scope != "Crypto" else []
     if top_picks:
@@ -60,11 +70,38 @@ def _build_and_send(scope, market_data, crypto_data, news, alerts, eur_usd):
         alerts=alerts, top_picks=top_picks, scope=scope,
         portfolio_advice=portfolio, eur_usd=eur_usd,
     )
-    path = save_report(html, scope.lower())
+    path = save_report(html, f"{scope.lower()}_{email.split('@')[0]}")
     print(f"    Saved: {path}")
 
+    greeting = f"Hi {name}," if name else "Hi,"
     subject = f"Market Report {label} — {date_str}"
-    send_report(html, subject=subject)
+    send_report(html, recipient_email=email, subject=subject, greeting=greeting)
+
+
+def _send_for_subscriber(subscriber, market_data, crypto_data, news, all_alerts, eur_usd):
+    markets = subscriber.get("markets", ["US", "Europe", "Crypto"])
+    email = subscriber["email"]
+    print(f"\n  → {email} | markets: {markets}")
+
+    us_data     = _filter(market_data, US_CATEGORIES)     if "US"     in markets else {}
+    europe_data = _filter(market_data, EUROPE_CATEGORIES) if "Europe" in markets else {}
+
+    us_alerts = [a for a in all_alerts if a.get("level") in ("warning", "danger")
+                 and any(a["name"] in item["name"]
+                         for items in us_data.values() for item in items)]
+    europe_alerts = [a for a in all_alerts if a.get("level") in ("warning", "danger")
+                     and any(a["name"] in item["name"]
+                             for items in europe_data.values() for item in items)]
+    crypto_alerts = [a for a in all_alerts if a.get("level") in ("warning", "danger")
+                     and any(a["name"].split(" ")[0] in c["name"]
+                             for c in crypto_data)]
+
+    if "US"     in markets:
+        _build_and_send("US",     us_data,     [],          news, us_alerts,     eur_usd, subscriber)
+    if "Europe" in markets:
+        _build_and_send("Europe", europe_data, [],          news, europe_alerts, eur_usd, subscriber)
+    if "Crypto" in markets:
+        _build_and_send("Crypto", {},          crypto_data, news, crypto_alerts, eur_usd, subscriber)
 
 
 def run():
@@ -87,25 +124,24 @@ def run():
     else:
         print("  No alerts triggered")
 
-    print("[4/4] Generating and sending 3 reports...")
+    # Load subscribers from DynamoDB — fall back to .env EMAIL_TO if unavailable
+    print("[4/4] Loading subscribers...")
+    try:
+        subscribers = get_active_subscribers()
+        if not subscribers:
+            print("  No subscribers in DynamoDB — using fallback EMAIL_TO")
+            subscribers = [FALLBACK_SUBSCRIBER]
+    except Exception as e:
+        print(f"  DynamoDB unavailable ({e}) — using fallback EMAIL_TO")
+        subscribers = [FALLBACK_SUBSCRIBER]
 
-    us_data     = _filter(market_data, US_CATEGORIES)
-    europe_data = _filter(market_data, EUROPE_CATEGORIES)
-    us_alerts     = [a for a in all_alerts if a.get("level") in ("warning", "danger")
-                     and any(a["name"] in item["name"]
-                             for items in us_data.values() for item in items)]
-    europe_alerts = [a for a in all_alerts if a.get("level") in ("warning", "danger")
-                     and any(a["name"] in item["name"]
-                             for items in europe_data.values() for item in items)]
-    crypto_alerts = [a for a in all_alerts if a.get("level") in ("warning", "danger")
-                     and any(a["name"].split(" ")[0] in c["name"]
-                             for c in crypto_data)]
+    print(f"  {len(subscribers)} subscriber(s) found")
+    print("\nGenerating and sending reports...")
 
-    _build_and_send("US",     us_data,     [],          news, us_alerts,     eur_usd)
-    _build_and_send("Europe", europe_data, [],          news, europe_alerts, eur_usd)
-    _build_and_send("Crypto", {},          crypto_data, news, crypto_alerts, eur_usd)
+    for subscriber in subscribers:
+        _send_for_subscriber(subscriber, market_data, crypto_data, news, all_alerts, eur_usd)
 
-    print("\n✓ 3 reports sent successfully!\n")
+    print(f"\n✓ Done — reports sent to {len(subscribers)} subscriber(s)!\n")
 
 
 if __name__ == "__main__":

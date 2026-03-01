@@ -3,3 +3,4 @@ requests
 feedparser
 groq
 python-dotenv
+boto3
