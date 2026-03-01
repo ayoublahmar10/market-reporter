@@ -2,7 +2,7 @@
 DynamoDB subscriber management.
 Table: market-reporter-subscribers
   PK: email (String)
-  Attributes: name, markets (List), language, tier, active (Boolean)
+  Attributes: name, markets (List), language, frequency, report_time, profile, tier, active (Boolean)
 """
 import boto3
 import os
@@ -30,17 +30,21 @@ def get_subscriber(email):
     return response.get("Item")
 
 
-def add_subscriber(email, name="", markets=None, language="en"):
+def add_subscriber(email, name="", markets=None, language="en",
+                   frequency="daily", report_time="morning", profile="beginner"):
     """Add or update a subscriber."""
     if markets is None:
         markets = ["US", "Europe", "Crypto"]
     _table().put_item(Item={
-        "email":    email,
-        "name":     name,
-        "markets":  markets,
-        "language": language,
-        "tier":     "free",
-        "active":   True,
+        "email":       email,
+        "name":        name,
+        "markets":     markets,
+        "language":    language,
+        "frequency":   frequency,    # "daily" | "weekly"
+        "report_time": report_time,  # "morning" | "afternoon"
+        "profile":     profile,      # "beginner" | "intermediate" | "expert"
+        "tier":        "free",
+        "active":      True,
     })
 
 

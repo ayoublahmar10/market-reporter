@@ -104,8 +104,12 @@ def _send_for_subscriber(subscriber, market_data, crypto_data, news, all_alerts,
         _build_and_send("Crypto", {},          crypto_data, news, crypto_alerts, eur_usd, subscriber)
 
 
-def run():
-    print(f"\n=== Market Reporter — {datetime.now().strftime('%d/%m/%Y %H:%M')} ===\n")
+def run(time_slot="morning"):
+    """
+    time_slot: "morning" (8h) | "afternoon" (16h) — passed by EventBridge Scheduler.
+    Subscribers are filtered by report_time and frequency before sending.
+    """
+    print(f"\n=== Market Reporter — {datetime.now().strftime('%d/%m/%Y %H:%M')} | slot: {time_slot} ===\n")
 
     print("[1/4] Fetching market data...")
     market_data = get_market_data()
@@ -136,6 +140,25 @@ def run():
         subscribers = [FALLBACK_SUBSCRIBER]
 
     print(f"  {len(subscribers)} subscriber(s) found")
+
+    # Filter by time slot (morning / afternoon)
+    subscribers = [
+        s for s in subscribers
+        if s.get("report_time", "morning") == time_slot
+    ]
+
+    # Filter weekly subscribers — only send on Monday (weekday 0)
+    today_is_monday = datetime.now().weekday() == 0
+    subscribers = [
+        s for s in subscribers
+        if s.get("frequency", "daily") == "daily" or today_is_monday
+    ]
+
+    if not subscribers:
+        print(f"  No subscribers for slot '{time_slot}' today — nothing to send.\n")
+        return
+
+    print(f"  {len(subscribers)} subscriber(s) match slot '{time_slot}'")
     print("\nGenerating and sending reports...")
 
     for subscriber in subscribers:

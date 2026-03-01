@@ -88,3 +88,9 @@ jobs:
             --s3-key lambda_package.zip
 
           echo "✓ All 3 functions deployed successfully!"
+
+      # 7. Deploy landing page to S3
+      - name: Deploy landing page
+        run: |
+          aws s3 cp landing/index.html s3://${{ secrets.S3_BUCKET }}/index.html
+          echo "✓ Landing page deployed!"

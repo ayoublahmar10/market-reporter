@@ -87,7 +87,8 @@
 
     input:focus { border-color: #60a5fa; }
 
-    .markets-label {
+    /* ── Toggle groups (markets = multi-select, prefs = single-select) ── */
+    .group-label {
       font-size: 0.85rem;
       font-weight: 500;
       color: #94a3b8;
@@ -95,13 +96,13 @@
       margin-bottom: 10px;
     }
 
-    .markets {
+    .toggle-group {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
     }
 
-    .market-btn {
+    .toggle-btn {
       padding: 8px 16px;
       border-radius: 8px;
       border: 1px solid #2d3148;
@@ -113,7 +114,7 @@
       user-select: none;
     }
 
-    .market-btn.selected {
+    .toggle-btn.selected {
       border-color: #60a5fa;
       background: #1e3a5f;
       color: #60a5fa;
@@ -171,7 +172,7 @@
     <div class="logo">📈</div>
     <h1>Market Reporter</h1>
     <p class="subtitle">
-      Get a personalized daily financial report delivered to your inbox —
+      Get a personalized financial report delivered to your inbox —
       US markets, Europe, and Crypto.
     </p>
 
@@ -190,11 +191,41 @@
       <label for="email">Email address *</label>
       <input type="email" id="email" placeholder="john@example.com" required />
 
-      <div class="markets-label">Markets you want to follow *</div>
-      <div class="markets">
-        <div class="market-btn selected" data-market="US">🇺🇸 US</div>
-        <div class="market-btn selected" data-market="Europe">🇪🇺 Europe</div>
-        <div class="market-btn selected" data-market="Crypto">₿ Crypto</div>
+      <!-- Markets (multi-select) -->
+      <div class="group-label">Markets you want to follow *</div>
+      <div class="toggle-group" id="markets">
+        <div class="toggle-btn selected" data-market="US">🇺🇸 US</div>
+        <div class="toggle-btn selected" data-market="Europe">🇪🇺 Europe</div>
+        <div class="toggle-btn selected" data-market="Crypto">₿ Crypto</div>
+      </div>
+
+      <!-- Frequency (single-select) -->
+      <div class="group-label">Report frequency</div>
+      <div class="toggle-group" data-group="frequency">
+        <div class="toggle-btn selected" data-value="daily">📅 Daily</div>
+        <div class="toggle-btn" data-value="weekly">📆 Weekly</div>
+      </div>
+
+      <!-- Delivery time (single-select) -->
+      <div class="group-label">Delivery time</div>
+      <div class="toggle-group" data-group="report_time">
+        <div class="toggle-btn selected" data-value="morning">🌅 8h Morning</div>
+        <div class="toggle-btn" data-value="afternoon">📉 16h After-market</div>
+      </div>
+
+      <!-- Language (single-select) -->
+      <div class="group-label">Language</div>
+      <div class="toggle-group" data-group="language">
+        <div class="toggle-btn selected" data-value="en">🇬🇧 English</div>
+        <div class="toggle-btn" data-value="fr">🇫🇷 Français</div>
+      </div>
+
+      <!-- Profile (single-select) -->
+      <div class="group-label">Your profile</div>
+      <div class="toggle-group" data-group="profile">
+        <div class="toggle-btn selected" data-value="beginner">🌱 Beginner</div>
+        <div class="toggle-btn" data-value="intermediate">📊 Intermediate</div>
+        <div class="toggle-btn" data-value="expert">🎯 Expert</div>
       </div>
 
       <button type="submit" id="btn">Subscribe — it's free</button>
@@ -206,24 +237,44 @@
   </div>
 
   <script>
-    // ──API Gateway URL ──────────────────
+    // ── API Gateway URL ──────────────────────────────────────────────────────
     const API_URL = "https://upp60tool8.execute-api.eu-central-1.amazonaws.com/subscribe";
     // ────────────────────────────────────────────────────────────────────────
 
-    // Market toggle buttons
-    document.querySelectorAll(".market-btn").forEach(btn => {
+    // Markets — multi-select toggle
+    document.querySelectorAll("#markets .toggle-btn").forEach(btn => {
       btn.addEventListener("click", () => btn.classList.toggle("selected"));
     });
+
+    // Preferences — single-select per group
+    document.querySelectorAll(".toggle-group[data-group]").forEach(group => {
+      group.querySelectorAll(".toggle-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          group.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+        });
+      });
+    });
+
+    // Helper — get selected value from a single-select group
+    function getSelected(groupName) {
+      const btn = document.querySelector(`.toggle-group[data-group="${groupName}"] .toggle-btn.selected`);
+      return btn ? btn.dataset.value : null;
+    }
 
     document.getElementById("form").addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const email   = document.getElementById("email").value.trim();
-      const name    = document.getElementById("name").value.trim();
-      const markets = [...document.querySelectorAll(".market-btn.selected")]
-                        .map(b => b.dataset.market);
-      const msg     = document.getElementById("msg");
-      const btn     = document.getElementById("btn");
+      const email       = document.getElementById("email").value.trim();
+      const name        = document.getElementById("name").value.trim();
+      const markets     = [...document.querySelectorAll("#markets .toggle-btn.selected")]
+                            .map(b => b.dataset.market);
+      const frequency   = getSelected("frequency");
+      const report_time = getSelected("report_time");
+      const language    = getSelected("language");
+      const profile     = getSelected("profile");
+      const msg         = document.getElementById("msg");
+      const btn         = document.getElementById("btn");
 
       if (!email) return;
       if (markets.length === 0) {
@@ -240,7 +291,7 @@
         const res = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, name, markets }),
+          body: JSON.stringify({ email, name, markets, frequency, report_time, language, profile }),
         });
 
         if (res.status === 409) {
@@ -259,7 +310,11 @@
             ? "✓ Preferences updated successfully!"
             : "✓ Subscribed! Check your inbox for a confirmation email.";
           document.getElementById("form").reset();
-          document.querySelectorAll(".market-btn").forEach(b => b.classList.add("selected"));
+          document.querySelectorAll("#markets .toggle-btn").forEach(b => b.classList.add("selected"));
+          document.querySelectorAll(".toggle-group[data-group]").forEach(group => {
+            const first = group.querySelector(".toggle-btn");
+            if (first) first.classList.add("selected");
+          });
         } else {
           throw new Error(await res.text());
         }

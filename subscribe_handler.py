@@ -34,10 +34,14 @@ def handler(event, context):
         return {"statusCode": 200, "headers": CORS_HEADERS, "body": ""}
 
     try:
-        body    = json.loads(event.get("body") or "{}")
-        email   = body.get("email", "").strip().lower()
-        name    = body.get("name", "").strip()
-        markets = body.get("markets", ["US", "Europe", "Crypto"])
+        body        = json.loads(event.get("body") or "{}")
+        email       = body.get("email", "").strip().lower()
+        name        = body.get("name", "").strip()
+        markets     = body.get("markets", ["US", "Europe", "Crypto"])
+        language    = body.get("language", "en")    if body.get("language")    in ("en", "fr")                              else "en"
+        frequency   = body.get("frequency", "daily") if body.get("frequency")  in ("daily", "weekly")                       else "daily"
+        report_time = body.get("report_time", "morning") if body.get("report_time") in ("morning", "afternoon")             else "morning"
+        profile     = body.get("profile", "beginner") if body.get("profile")   in ("beginner", "intermediate", "expert")    else "beginner"
 
         if not email or "@" not in email:
             return _error(400, "Invalid email address")
@@ -57,7 +61,9 @@ def handler(event, context):
                     "body": json.dumps({"error": "This email is already subscribed to the same markets"}),
                 }
             # Different markets → update preferences + send update email
-            add_subscriber(email=email, name=name, markets=markets)
+            add_subscriber(email=email, name=name, markets=markets,
+                           language=language, frequency=frequency,
+                           report_time=report_time, profile=profile)
             print(f"Updated subscriber: {email} | markets: {markets}")
             _send_update_confirmation(email=email, name=name, markets=markets)
             return {
@@ -66,8 +72,10 @@ def handler(event, context):
                 "body": json.dumps({"message": "Preferences updated successfully"}),
             }
 
-        add_subscriber(email=email, name=name, markets=markets)
-        print(f"New subscriber: {email} | markets: {markets}")
+        add_subscriber(email=email, name=name, markets=markets,
+                       language=language, frequency=frequency,
+                       report_time=report_time, profile=profile)
+        print(f"New subscriber: {email} | markets: {markets} | lang: {language} | freq: {frequency} | time: {report_time} | profile: {profile}")
 
         _send_confirmation(email=email, name=name, markets=markets)
 
