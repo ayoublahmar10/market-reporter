@@ -52,15 +52,17 @@ def save_report(html: str, suffix: str) -> str:
 def _build_and_send(scope, market_data, crypto_data, news, alerts, eur_usd, subscriber):
     date_str = datetime.now().strftime("%d/%m/%Y")
     label = {"US": "🇺🇸 US", "Europe": "🇪🇺 Europe", "Crypto": "₿ Crypto"}[scope]
-    name = subscriber.get("name", "")
-    email = subscriber["email"]
+    name    = subscriber.get("name", "")
+    email   = subscriber["email"]
+    profile  = subscriber.get("profile", "beginner")
+    language = subscriber.get("language", "fr")
 
     top_picks = get_top_picks(market_data, scope=scope) if scope != "Crypto" else []
     if top_picks:
         print("    Top picks: " + ", ".join(f"{s['name']} ({s['score']:+.1f})" for s in top_picks))
 
-    print(f"    AI analysis {label}...")
-    ai = analyze_market(market_data, crypto_data, news, scope=scope, eur_usd=eur_usd)
+    print(f"    AI analysis {label} (profile: {profile}, lang: {language})...")
+    ai = analyze_market(market_data, crypto_data, news, scope=scope, eur_usd=eur_usd, profile=profile, language=language)
 
     print(f"    Investment plan {label}...")
     portfolio = get_portfolio_advice(market_data, crypto_data, top_picks, scope=scope, eur_usd=eur_usd)
