@@ -7,9 +7,12 @@ Expected body: { "email": "...", "name": "...", "markets": ["US", "Crypto"] }
 import json
 import os
 import smtplib
+import urllib.parse
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from subscribers import add_subscriber, get_subscriber
+
+API_BASE_URL = os.environ.get("API_BASE_URL", "")
 
 ALLOWED_MARKETS = {"US", "Europe", "Crypto"}
 
@@ -115,12 +118,12 @@ def _send_confirmation(email, name, markets):
         </div>
 
         <p style="color:#64748b;font-size:0.9rem;margin:0">
-          Your first report will arrive tomorrow.<br>
-          To unsubscribe, simply reply to any email with <strong>UNSUBSCRIBE</strong>.
+          Your first report will arrive tomorrow.
         </p>
       </div>
       <p style="color:#94a3b8;font-size:0.8rem;text-align:center;margin-top:16px">
-        Market Reporter — Daily financial intelligence
+        Market Reporter — Daily financial intelligence<br>
+        {f'<a href="{API_BASE_URL}/unsubscribe?email={urllib.parse.quote(email)}" style="color:#60a5fa">Unsubscribe</a>' if API_BASE_URL else ""}
       </p>
     </div>
     """
@@ -165,12 +168,12 @@ def _send_update_confirmation(email, name, markets):
         </ul>
 
         <p style="color:#64748b;font-size:0.9rem;margin:0">
-          Changes take effect from tomorrow's report.<br>
-          To unsubscribe, simply reply with <strong>UNSUBSCRIBE</strong>.
+          Changes take effect from tomorrow's report.
         </p>
       </div>
       <p style="color:#94a3b8;font-size:0.8rem;text-align:center;margin-top:16px">
-        Market Reporter — Daily financial intelligence
+        Market Reporter — Daily financial intelligence<br>
+        {f'<a href="{API_BASE_URL}/unsubscribe?email={urllib.parse.quote(email)}" style="color:#60a5fa">Unsubscribe</a>' if API_BASE_URL else ""}
       </p>
     </div>
     """
