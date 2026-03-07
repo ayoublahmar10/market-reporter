@@ -4,6 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Market Reporter — AI-Powered Financial Reports in Your Inbox</title>
+
+  <!-- Open Graph (Facebook, LinkedIn, WhatsApp) -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:title"       content="Market Reporter — Your personalized financial report, every morning" />
+  <meta property="og:description" content="AI-powered analysis of US, European and Crypto markets. Adapted to your profile. Delivered to your inbox. Free forever." />
+  <meta property="og:url"         content="https://market-reporter.s3-website.eu-central-1.amazonaws.com" />
+  <meta property="og:image"       content="https://market-reporter.s3-website.eu-central-1.amazonaws.com/og-image.png" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="Market Reporter — Your personalized financial report, every morning" />
+  <meta name="twitter:description" content="AI analysis of US, Europe & Crypto markets — adapted to your level, delivered to your inbox. Free." />
+  <meta name="twitter:image"       content="https://market-reporter.s3-website.eu-central-1.amazonaws.com/og-image.png" />
+
+  <!-- SEO -->
+  <meta name="description" content="AI-powered financial reports personalized to your investor profile. US markets, Europe, Crypto. Free. No spam." />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -691,6 +707,23 @@
     </div>
   </section>
 
+  <!-- SHARE -->
+  <section style="padding: 48px 20px; text-align: center; border-top: 1px solid var(--border);">
+    <div style="font-size:0.8rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin-bottom:12px;">Share</div>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:24px;">Know someone who tracks the markets? Share Market Reporter with them.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a id="share-twitter" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);text-decoration:none;font-size:0.88rem;font-weight:500;transition:border-color 0.2s;">
+        𝕏 Share on X
+      </a>
+      <a id="share-linkedin" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);text-decoration:none;font-size:0.88rem;font-weight:500;transition:border-color 0.2s;">
+        💼 Share on LinkedIn
+      </a>
+      <a id="share-whatsapp" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);text-decoration:none;font-size:0.88rem;font-weight:500;transition:border-color 0.2s;">
+        💬 Share on WhatsApp
+      </a>
+    </div>
+  </section>
+
   <!-- FOOTER -->
   <footer>
     <div style="font-weight:600; margin-bottom:6px;">📈 Market Reporter</div>
@@ -801,6 +834,18 @@
         btn.textContent = "Subscribe — it's free";
       }
     });
+    // Share buttons
+    const PAGE_URL   = encodeURIComponent(window.location.href);
+    const SHARE_TEXT = encodeURIComponent("I just found this tool that sends personalized AI-powered financial market reports to your inbox every morning. Free. Check it out 👇");
+
+    document.getElementById("share-twitter").href =
+      `https://twitter.com/intent/tweet?text=${SHARE_TEXT}&url=${PAGE_URL}`;
+
+    document.getElementById("share-linkedin").href =
+      `https://www.linkedin.com/sharing/share-offsite/?url=${PAGE_URL}`;
+
+    document.getElementById("share-whatsapp").href =
+      `https://wa.me/?text=${SHARE_TEXT}%20${PAGE_URL}`;
   </script>
 </body>
 </html>
