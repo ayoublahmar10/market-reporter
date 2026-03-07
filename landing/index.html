@@ -3,257 +3,705 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Market Reporter — Daily Financial Reports</title>
+  <title>Market Reporter — AI-Powered Financial Reports in Your Inbox</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080b14;
+      --bg2:       #0f1423;
+      --bg3:       #141826;
+      --border:    #1e2540;
+      --blue:      #3b82f6;
+      --purple:    #7c3aed;
+      --blue-soft: #1e3a5f;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --green:     #22c55e;
+      --red:       #ef4444;
+    }
+
+    html { scroll-behavior: smooth; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0f1117;
-      color: #e2e8f0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px;
+      height: 64px;
+      background: rgba(8,11,20,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+    .nav-logo span { background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-cta {
+      padding: 8px 20px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: white; font-size: 0.9rem; font-weight: 600;
+      text-decoration: none; cursor: pointer; border: none;
+    }
+    .nav-cta:hover { opacity: 0.9; }
+
+    /* ── HERO ── */
+    .hero {
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 100px 20px 60px;
+      position: relative;
+      overflow: hidden;
     }
 
-    .card {
-      background: #1a1d27;
-      border: 1px solid #2d3148;
-      border-radius: 16px;
-      padding: 48px 40px;
-      max-width: 480px;
-      width: 100%;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+    .hero::before {
+      content: "";
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59,130,246,0.12) 0%, transparent 70%);
+      pointer-events: none;
     }
 
-    .logo { font-size: 2rem; margin-bottom: 8px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 20px;
+      border: 1px solid rgba(59,130,246,0.3);
+      background: rgba(59,130,246,0.08);
+      font-size: 0.82rem; color: var(--blue);
+      margin-bottom: 28px;
+    }
+    .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
     h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, #60a5fa, #a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.15;
+      max-width: 760px;
+      margin-bottom: 20px;
+      letter-spacing: -0.02em;
+    }
+    h1 .gradient {
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
 
-    .subtitle {
-      color: #94a3b8;
-      font-size: 0.95rem;
-      margin-bottom: 32px;
-      line-height: 1.5;
+    .hero-sub {
+      font-size: 1.15rem; color: var(--muted);
+      max-width: 540px; margin-bottom: 40px; line-height: 1.7;
     }
 
-    .features {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 32px;
+    .hero-actions {
+      display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+      margin-bottom: 56px;
     }
 
-    .badge {
-      background: #1e2535;
-      border: 1px solid #2d3148;
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: 0.8rem;
-      color: #94a3b8;
+    .btn-primary {
+      padding: 14px 32px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: white; font-size: 1rem; font-weight: 600;
+      border: none; cursor: pointer; text-decoration: none;
+      transition: opacity 0.2s, transform 0.2s;
+      display: inline-block;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .btn-ghost {
+      padding: 14px 32px; border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text); font-size: 1rem; font-weight: 500;
+      cursor: pointer; text-decoration: none;
+      transition: border-color 0.2s;
+      display: inline-block;
+    }
+    .btn-ghost:hover { border-color: var(--blue); color: var(--blue); }
+
+    .hero-trust {
+      display: flex; align-items: center; gap: 24px;
+      flex-wrap: wrap; justify-content: center;
+      font-size: 0.85rem; color: var(--muted);
+    }
+    .hero-trust span { display: flex; align-items: center; gap: 6px; }
+    .hero-trust .check { color: var(--green); }
+
+    /* ── REPORT PREVIEW ── */
+    .section { padding: 80px 20px; }
+    .section-label {
+      text-align: center; font-size: 0.8rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--blue); margin-bottom: 14px;
+    }
+    h2 {
+      text-align: center; font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 700; line-height: 1.25; margin-bottom: 14px;
+    }
+    .section-sub {
+      text-align: center; color: var(--muted);
+      max-width: 520px; margin: 0 auto 48px;
+    }
+
+    .report-preview {
+      max-width: 720px; margin: 0 auto;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+    }
+
+    .report-header {
+      background: linear-gradient(135deg, #0d1f3c, #1a0d3c);
+      padding: 24px 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .report-meta { font-size: 0.8rem; color: var(--muted); }
+    .report-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+    .report-badge {
+      padding: 4px 10px; border-radius: 6px;
+      background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+      font-size: 0.75rem; color: var(--blue); font-weight: 600; white-space: nowrap;
+    }
+
+    .report-body { padding: 24px 28px; }
+
+    .verdict-box {
+      background: rgba(34,197,94,0.06);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 10px; padding: 16px 20px; margin-bottom: 20px;
+    }
+    .verdict-title { font-size: 0.75rem; font-weight: 600; color: var(--green); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+    .verdict-item { font-size: 0.9rem; margin-bottom: 6px; line-height: 1.5; }
+    .verdict-item strong { color: white; }
+    .verdict-stance { font-size: 0.85rem; color: var(--muted); margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(34,197,94,0.15); }
+
+    .picks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    @media (max-width: 480px) { .picks-grid { grid-template-columns: 1fr; } }
+
+    .pick-card {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
+    }
+    .pick-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .pick-name { font-size: 0.9rem; font-weight: 600; }
+    .pick-change { font-size: 0.8rem; font-weight: 700; }
+    .up { color: var(--green); } .down { color: var(--red); }
+    .pick-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+    .pick-signal { font-size: 0.8rem; margin-top: 8px; }
+
+    .report-blur {
+      filter: blur(5px); user-select: none; pointer-events: none;
+      position: relative;
+    }
+    .blur-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
+      background: linear-gradient(transparent, var(--bg2));
+    }
+    .report-cta {
+      text-align: center; padding: 20px 28px 28px;
+      border-top: 1px solid var(--border);
+    }
+    .report-cta p { color: var(--muted); font-size: 0.9rem; margin-bottom: 14px; }
+
+    /* ── FEATURES ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; max-width: 960px; margin: 0 auto;
+    }
+    .feature-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px;
+      transition: border-color 0.2s;
+    }
+    .feature-card:hover { border-color: rgba(59,130,246,0.4); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 14px; }
+    .feature-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .feature-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── HOW IT WORKS ── */
+    .steps { display: flex; flex-direction: column; gap: 0; max-width: 600px; margin: 0 auto; }
+    .step { display: flex; gap: 20px; position: relative; padding-bottom: 32px; }
+    .step:last-child { padding-bottom: 0; }
+    .step-line {
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 700; flex-shrink: 0;
+    }
+    .step-connector {
+      flex: 1; width: 2px; background: var(--border); margin-top: 6px;
+    }
+    .step:last-child .step-connector { display: none; }
+    .step-content { padding-top: 6px; }
+    .step-title { font-weight: 700; margin-bottom: 4px; }
+    .step-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; max-width: 960px; margin: 0 auto;
+    }
+    .testimonial {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px;
+    }
+    .testimonial-text { font-size: 0.92rem; color: var(--text); line-height: 1.7; margin-bottom: 16px; font-style: italic; }
+    .testimonial-text::before { content: '"'; color: var(--blue); font-size: 1.5rem; line-height: 0; vertical-align: -0.4em; margin-right: 4px; }
+    .testimonial-author { display: flex; align-items: center; gap: 10px; }
+    .author-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 700;
+    }
+    .author-name { font-size: 0.88rem; font-weight: 600; }
+    .author-role { font-size: 0.78rem; color: var(--muted); }
+
+    /* ── FAQ ── */
+    .faq { max-width: 640px; margin: 0 auto; }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-q {
+      width: 100%; text-align: left;
+      padding: 20px 0; background: none; border: none;
+      color: var(--text); font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
+    .faq-q .arrow { color: var(--muted); font-size: 1.1rem; transition: transform 0.2s; flex-shrink: 0; }
+    .faq-q[aria-expanded="true"] .arrow { transform: rotate(180deg); }
+    .faq-a { font-size: 0.88rem; color: var(--muted); line-height: 1.7; padding-bottom: 20px; display: none; }
+    .faq-a.open { display: block; }
+
+    /* ── SUBSCRIBE FORM ── */
+    #subscribe {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-card {
+      max-width: 520px; margin: 0 auto;
     }
 
     label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: #94a3b8;
-      margin-bottom: 6px;
-      margin-top: 16px;
+      display: block; font-size: 0.82rem; font-weight: 500;
+      color: var(--muted); margin-bottom: 6px; margin-top: 18px;
     }
 
-    input[type="text"],
-    input[type="email"] {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 8px;
-      border: 1px solid #2d3148;
-      background: #0f1117;
-      color: #e2e8f0;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
+    input[type="text"], input[type="email"] {
+      width: 100%; padding: 12px 14px;
+      border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text);
+      font-size: 0.95rem; outline: none; transition: border-color 0.2s;
     }
+    input:focus { border-color: var(--blue); }
 
-    input:focus { border-color: #60a5fa; }
-
-    /* ── Toggle groups (markets = multi-select, prefs = single-select) ── */
     .group-label {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: #94a3b8;
-      margin-top: 16px;
-      margin-bottom: 10px;
+      font-size: 0.82rem; font-weight: 500;
+      color: var(--muted); margin-top: 18px; margin-bottom: 8px;
     }
 
-    .toggle-group {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .toggle-group { display: flex; gap: 8px; flex-wrap: wrap; }
 
     .toggle-btn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: 1px solid #2d3148;
-      background: #0f1117;
-      color: #94a3b8;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      user-select: none;
+      padding: 8px 16px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg);
+      color: var(--muted); font-size: 0.88rem;
+      cursor: pointer; transition: all 0.15s; user-select: none;
     }
-
     .toggle-btn.selected {
-      border-color: #60a5fa;
-      background: #1e3a5f;
-      color: #60a5fa;
+      border-color: var(--blue); background: var(--blue-soft); color: var(--blue);
     }
 
     button[type="submit"] {
-      width: 100%;
-      margin-top: 28px;
-      padding: 14px;
-      border-radius: 10px;
-      border: none;
-      background: linear-gradient(135deg, #3b82f6, #7c3aed);
-      color: white;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.2s;
+      width: 100%; margin-top: 28px; padding: 14px;
+      border-radius: 10px; border: none;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: white; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s;
     }
-
     button[type="submit"]:hover { opacity: 0.9; }
     button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
 
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinner {
-      display: inline-block;
-      width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 8px;
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.35); border-top-color: white;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+      vertical-align: middle; margin-right: 8px;
     }
 
-    .message {
-      margin-top: 16px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      display: none;
+    .msg {
+      margin-top: 14px; padding: 12px 16px;
+      border-radius: 8px; font-size: 0.88rem; display: none;
+    }
+    .msg.success { background: #14532d; border: 1px solid #16a34a; color: #4ade80; display: block; }
+    .msg.error   { background: #450a0a; border: 1px solid var(--red); color: #f87171; display: block; }
+
+    .form-footer { margin-top: 16px; font-size: 0.78rem; color: var(--muted); text-align: center; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center; padding: 40px 20px;
+      font-size: 0.82rem; color: var(--muted);
+      border-top: 1px solid var(--border);
     }
 
-    .message.success {
-      background: #14532d;
-      border: 1px solid #16a34a;
-      color: #4ade80;
-      display: block;
-    }
+    /* ── DIVIDER ── */
+    .divider { max-width: 960px; margin: 0 auto; border: none; border-top: 1px solid var(--border); }
 
-    .message.error {
-      background: #450a0a;
-      border: 1px solid #dc2626;
-      color: #f87171;
-      display: block;
-    }
-
-    .footer {
-      margin-top: 24px;
-      font-size: 0.8rem;
-      color: #4b5563;
-      text-align: center;
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      nav { padding: 0 20px; }
+      .report-header { flex-direction: column; gap: 10px; }
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="logo">📈</div>
-    <h1>Market Reporter</h1>
-    <p class="subtitle">
-      Get a personalized financial report delivered to your inbox —
-      US markets, Europe, and Crypto.
-    </p>
 
-    <div class="features">
-      <span class="badge">🤖 AI analysis</span>
-      <span class="badge">📊 Top picks</span>
-      <span class="badge">⚡ Alerts</span>
-      <span class="badge">💱 EUR/USD</span>
-      <span class="badge">Free</span>
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">📈 <span>Market Reporter</span></div>
+    <a class="nav-cta" href="#subscribe">Get started — free</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="dot"></span> Live — reports sent every morning & afternoon
     </div>
+    <h1>Your <span class="gradient">personalized financial report</span>, every morning in your inbox</h1>
+    <p class="hero-sub">
+      AI-powered analysis of US markets, Europe, and Crypto — adapted to your profile and delivered at the time you choose. No noise, just what matters.
+    </p>
+    <div class="hero-actions">
+      <a href="#subscribe" class="btn-primary">Subscribe — it's free →</a>
+      <a href="#preview" class="btn-ghost">See an example report</a>
+    </div>
+    <div class="hero-trust">
+      <span><span class="check">✓</span> No credit card</span>
+      <span><span class="check">✓</span> Unsubscribe in 1 click</span>
+      <span><span class="check">✓</span> No spam, ever</span>
+      <span><span class="check">✓</span> Free forever</span>
+    </div>
+  </section>
 
-    <form id="form">
-      <label for="name">First name</label>
-      <input type="text" id="name" placeholder="John" />
+  <!-- REPORT PREVIEW -->
+  <section class="section" id="preview">
+    <div class="section-label">Example report</div>
+    <h2>See exactly what you'll receive</h2>
+    <p class="section-sub">A real excerpt from today's morning report — US market edition, beginner profile.</p>
 
-      <label for="email">Email address *</label>
-      <input type="email" id="email" placeholder="john@example.com" required />
-
-      <!-- Markets (multi-select) -->
-      <div class="group-label">Markets you want to follow *</div>
-      <div class="toggle-group" id="markets">
-        <div class="toggle-btn selected" data-market="US">🇺🇸 US</div>
-        <div class="toggle-btn selected" data-market="Europe">🇪🇺 Europe</div>
-        <div class="toggle-btn selected" data-market="Crypto">₿ Crypto</div>
+    <div class="report-preview">
+      <div class="report-header">
+        <div>
+          <div class="report-meta">🇺🇸 US Markets — Wednesday 05/03/2026 · Morning edition</div>
+          <div class="report-title">Market Report — Daily Analysis</div>
+        </div>
+        <div class="report-badge">🌱 Beginner</div>
       </div>
+      <div class="report-body">
 
-      <!-- Frequency (single-select) -->
-      <div class="group-label">Report frequency</div>
-      <div class="toggle-group" data-group="frequency">
-        <div class="toggle-btn selected" data-value="daily">📅 Daily</div>
-        <div class="toggle-btn" data-value="weekly">📆 Weekly</div>
+        <div class="verdict-box">
+          <div class="verdict-title">▶ Today's Verdict — What to do now?</div>
+          <div class="verdict-item">▶ <strong>NVIDIA (NVDA)</strong> — Up +3.2% today and +11% over 7 days, driven by strong AI chip demand news.</div>
+          <div class="verdict-item">▶ <strong>Apple (AAPL)</strong> — Stable with solid 7-day trend, defensive option in a volatile session.</div>
+          <div class="verdict-stance">📊 Overall position: <strong>Cautiously bullish</strong> — tech leading, stay selective.</div>
+        </div>
+
+        <div class="picks-grid" style="position:relative">
+          <div class="pick-card">
+            <div class="pick-top">
+              <div class="pick-name">NVIDIA (NVDA)</div>
+              <div class="pick-change up">+3.2% ↑</div>
+            </div>
+            <div class="pick-desc">AI chip demand surge confirmed by Q1 earnings beat. 7-day trend aligned upward.</div>
+            <div class="pick-signal">🟢 BUY</div>
+          </div>
+          <div class="pick-card">
+            <div class="pick-top">
+              <div class="pick-name">JPMorgan (JPM)</div>
+              <div class="pick-change up">+1.1% ↑</div>
+            </div>
+            <div class="pick-desc">Rate expectations stabilizing. Banking sector recovering. Defensive with upside.</div>
+            <div class="pick-signal">🟢 BUY</div>
+          </div>
+          <div class="pick-card report-blur" style="position:relative">
+            <div class="pick-top">
+              <div class="pick-name">Meta (META)</div>
+              <div class="pick-change down">-0.8% ↓</div>
+            </div>
+            <div class="pick-desc">Short-term pullback but 7-day trend remains positive. Watch key support level.</div>
+            <div class="pick-signal">🟡 WATCH</div>
+            <div class="blur-overlay"></div>
+          </div>
+          <div class="pick-card report-blur">
+            <div class="pick-top">
+              <div class="pick-name">ExxonMobil (XOM)</div>
+              <div class="pick-change up">+2.4% ↑</div>
+            </div>
+            <div class="pick-desc">Oil up on supply concerns. Energy sector outperforming. Momentum confirmed.</div>
+            <div class="pick-signal">🟢 BUY</div>
+          </div>
+        </div>
+
       </div>
-
-      <!-- Delivery time (single-select) -->
-      <div class="group-label">Delivery time</div>
-      <div class="toggle-group" data-group="report_time">
-        <div class="toggle-btn selected" data-value="morning">🌅 8h Morning</div>
-        <div class="toggle-btn" data-value="afternoon">📉 16h After-market</div>
+      <div class="report-cta">
+        <p>🔒 Subscribe to unlock the full report — macro context, risks, portfolio advice & more</p>
+        <a href="#subscribe" class="btn-primary">Get my free report →</a>
       </div>
+    </div>
+  </section>
 
-      <!-- Language (single-select) -->
-      <div class="group-label">Language</div>
-      <div class="toggle-group" data-group="language">
-        <div class="toggle-btn selected" data-value="en">English</div>
-        <div class="toggle-btn" data-value="fr">Français</div>
+  <hr class="divider" />
+
+  <!-- FEATURES -->
+  <section class="section">
+    <div class="section-label">Why Market Reporter</div>
+    <h2>Everything you need, nothing you don't</h2>
+    <p class="section-sub">We do the research so you don't have to. Open your inbox, make better decisions.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-title">AI-powered analysis</div>
+        <div class="feature-desc">Our AI reads hundreds of data points every day — prices, trends, news — and distills it into a clear, actionable report tailored to your profile.</div>
       </div>
-
-      <!-- Profile (single-select) -->
-      <div class="group-label">Your profile</div>
-      <div class="toggle-group" data-group="profile">
-        <div class="toggle-btn selected" data-value="beginner">🌱 Beginner</div>
-        <div class="toggle-btn" data-value="intermediate">📊 Intermediate</div>
-        <div class="toggle-btn" data-value="expert">🎯 Expert</div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-title">Adapted to your level</div>
+        <div class="feature-desc">Beginner? We explain clearly. Intermediate? Balanced macro analysis. Expert? Full technical depth with RSI, correlations, and sector rotation.</div>
       </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Real-time alerts</div>
+        <div class="feature-desc">Unusual market moves are flagged automatically — significant drops, volatility spikes, and divergences between daily and 7-day trends.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌍</div>
+        <div class="feature-title">3 markets covered</div>
+        <div class="feature-desc">US markets (S&P 500, Nasdaq, top stocks), European markets (CAC 40, DAX, commodities), and Crypto (top 20 coins with momentum signals).</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📅</div>
+        <div class="feature-title">Your schedule, your choice</div>
+        <div class="feature-desc">Morning report at 8 AM before the market opens, or after-market edition at 4 PM. Daily or weekly — you decide.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💱</div>
+        <div class="feature-title">EUR/USD built-in</div>
+        <div class="feature-desc">Investing in euros? Exchange rate impact is automatically factored into all US market recommendations.</div>
+      </div>
+    </div>
+  </section>
 
-      <button type="submit" id="btn">Subscribe — it's free</button>
-    </form>
+  <hr class="divider" />
 
-    <div class="message" id="msg"></div>
+  <!-- HOW IT WORKS -->
+  <section class="section">
+    <div class="section-label">How it works</div>
+    <h2>Up and running in 60 seconds</h2>
+    <p class="section-sub">No app to download, no dashboard to check. Just your inbox.</p>
 
-    <div class="footer">No spam. Unsubscribe anytime.</div>
-  </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-line">
+          <div class="step-num">1</div>
+          <div class="step-connector"></div>
+        </div>
+        <div class="step-content">
+          <div class="step-title">Choose your preferences</div>
+          <div class="step-desc">Select the markets you care about, your experience level, your preferred language, and when you want to receive your report.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line">
+          <div class="step-num">2</div>
+          <div class="step-connector"></div>
+        </div>
+        <div class="step-content">
+          <div class="step-title">Get a confirmation email</div>
+          <div class="step-desc">A summary of your preferences is sent immediately. You'll receive your first real report at the next scheduled send time.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line">
+          <div class="step-num">3</div>
+          <div class="step-connector"></div>
+        </div>
+        <div class="step-content">
+          <div class="step-title">Open your inbox, make better decisions</div>
+          <div class="step-desc">Your personalized report arrives automatically. Stock picks, AI analysis, portfolio advice — everything in one email. Update preferences anytime by re-submitting the form.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- TESTIMONIALS -->
+  <section class="section">
+    <div class="section-label">Early users</div>
+    <h2>What people are saying</h2>
+    <p class="section-sub">Real feedback from our beta testers.</p>
+
+    <div class="testimonials-grid">
+      <div class="testimonial">
+        <div class="testimonial-text">I used to spend 30 minutes every morning reading financial news. Now I get a clear summary with actionable picks directly in my inbox. Game changer.</div>
+        <div class="testimonial-author">
+          <div class="author-avatar">TM</div>
+          <div>
+            <div class="author-name">Thomas M.</div>
+            <div class="author-role">Software Engineer · Intermediate investor</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="testimonial-text">As a beginner, the jargon in financial media always put me off. Market Reporter explains everything simply without being condescending. Finally I understand what's happening.</div>
+        <div class="testimonial-author">
+          <div class="author-avatar">SB</div>
+          <div>
+            <div class="author-name">Sara B.</div>
+            <div class="author-role">Marketing Manager · Beginner investor</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="testimonial-text">The EUR/USD integration is a detail that makes a huge difference when you invest in US stocks from Europe. Shows this was built by someone who actually invests.</div>
+        <div class="testimonial-author">
+          <div class="author-avatar">AK</div>
+          <div>
+            <div class="author-name">Alex K.</div>
+            <div class="author-role">Freelance Consultant · Expert investor</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- FAQ -->
+  <section class="section">
+    <div class="section-label">FAQ</div>
+    <h2>Common questions</h2>
+    <p class="section-sub" style="margin-bottom: 40px;">Everything you need to know before subscribing.</p>
+
+    <div class="faq">
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          Is it really free? <span class="arrow">▼</span>
+        </button>
+        <div class="faq-a">Yes, completely free. No credit card required, no trial period, no hidden costs. You subscribe and receive your reports — that's it.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          What data does the report include? <span class="arrow">▼</span>
+        </button>
+        <div class="faq-a">Real-time market prices, daily and 7-day trends for indices, individual stocks and cryptos, today's financial news, AI analysis, top stock picks with buy/watch/avoid signals, and portfolio advice.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          Can I change my preferences later? <span class="arrow">▼</span>
+        </button>
+        <div class="faq-a">Yes — just fill in the form again with your email and updated preferences. Your profile will be updated and you'll receive a confirmation email.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          How do I unsubscribe? <span class="arrow">▼</span>
+        </button>
+        <div class="faq-a">Every email includes an unsubscribe link at the bottom. One click and you're removed instantly — no questions asked.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          What is the "beginner / intermediate / expert" profile? <span class="arrow">▼</span>
+        </button>
+        <div class="faq-a">It tells the AI how to write your report. Beginners get simple language with explanations. Intermediates get standard financial analysis. Experts get full technical depth — RSI, MACD, beta, sector rotation, hedging strategies.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          When exactly are reports sent? <span class="arrow">▼</span>
+        </button>
+        <div class="faq-a">Morning reports are sent at 8 AM (before the market opens). After-market reports are sent at 4 PM (when European markets close). All times are CET.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUBSCRIBE FORM -->
+  <section class="section" id="subscribe">
+    <div class="section-label">Get started</div>
+    <h2>Your first report is one click away</h2>
+    <p class="section-sub" style="margin-bottom: 40px;">Free forever. Personalized to you. Delivered on your schedule.</p>
+
+    <div class="form-card">
+      <form id="form">
+        <label for="name">First name</label>
+        <input type="text" id="name" placeholder="John" />
+
+        <label for="email">Email address *</label>
+        <input type="email" id="email" placeholder="john@example.com" required />
+
+        <div class="group-label">Markets to follow *</div>
+        <div class="toggle-group" id="markets">
+          <div class="toggle-btn selected" data-market="US">🇺🇸 US</div>
+          <div class="toggle-btn selected" data-market="Europe">🇪🇺 Europe</div>
+          <div class="toggle-btn selected" data-market="Crypto">₿ Crypto</div>
+        </div>
+
+        <div class="group-label">Report frequency</div>
+        <div class="toggle-group" data-group="frequency">
+          <div class="toggle-btn selected" data-value="daily">📅 Daily</div>
+          <div class="toggle-btn" data-value="weekly">📆 Weekly (Monday)</div>
+        </div>
+
+        <div class="group-label">Delivery time</div>
+        <div class="toggle-group" data-group="report_time">
+          <div class="toggle-btn selected" data-value="morning">🌅 8h Morning</div>
+          <div class="toggle-btn" data-value="afternoon">📉 16h After-market</div>
+        </div>
+
+        <div class="group-label">Language</div>
+        <div class="toggle-group" data-group="language">
+          <div class="toggle-btn selected" data-value="en">English</div>
+          <div class="toggle-btn" data-value="fr">Français</div>
+        </div>
+
+        <div class="group-label">Your investor profile</div>
+        <div class="toggle-group" data-group="profile">
+          <div class="toggle-btn selected" data-value="beginner">🌱 Beginner</div>
+          <div class="toggle-btn" data-value="intermediate">📊 Intermediate</div>
+          <div class="toggle-btn" data-value="expert">🎯 Expert</div>
+        </div>
+
+        <button type="submit" id="btn">Subscribe — it's free</button>
+      </form>
+
+      <div class="msg" id="msg"></div>
+      <div class="form-footer">No spam. Unsubscribe anytime in 1 click.</div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div style="font-weight:600; margin-bottom:6px;">📈 Market Reporter</div>
+    <div>AI-powered financial reports, personalized and delivered to your inbox.</div>
+    <div style="margin-top:12px; opacity:0.5;">© 2026 Market Reporter · Free forever</div>
+  </footer>
 
   <script>
-    // ── API Gateway URL ──────────────────────────────────────────────────────
     const API_URL = "https://upp60tool8.execute-api.eu-central-1.amazonaws.com/subscribe";
-    // ────────────────────────────────────────────────────────────────────────
 
-    // Markets — multi-select toggle
+    // Markets — multi-select
     document.querySelectorAll("#markets .toggle-btn").forEach(btn => {
       btn.addEventListener("click", () => btn.classList.toggle("selected"));
     });
@@ -268,19 +716,33 @@
       });
     });
 
-    // Helper — get selected value from a single-select group
     function getSelected(groupName) {
       const btn = document.querySelector(`.toggle-group[data-group="${groupName}"] .toggle-btn.selected`);
       return btn ? btn.dataset.value : null;
     }
 
+    // FAQ accordion
+    document.querySelectorAll(".faq-q").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const expanded = btn.getAttribute("aria-expanded") === "true";
+        document.querySelectorAll(".faq-q").forEach(b => {
+          b.setAttribute("aria-expanded", "false");
+          b.nextElementSibling.classList.remove("open");
+        });
+        if (!expanded) {
+          btn.setAttribute("aria-expanded", "true");
+          btn.nextElementSibling.classList.add("open");
+        }
+      });
+    });
+
+    // Form submit
     document.getElementById("form").addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const email       = document.getElementById("email").value.trim();
       const name        = document.getElementById("name").value.trim();
-      const markets     = [...document.querySelectorAll("#markets .toggle-btn.selected")]
-                            .map(b => b.dataset.market);
+      const markets     = [...document.querySelectorAll("#markets .toggle-btn.selected")].map(b => b.dataset.market);
       const frequency   = getSelected("frequency");
       const report_time = getSelected("report_time");
       const language    = getSelected("language");
@@ -290,14 +752,14 @@
 
       if (!email) return;
       if (markets.length === 0) {
-        msg.className = "message error";
+        msg.className = "msg error";
         msg.textContent = "Please select at least one market.";
         return;
       }
 
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>Subscribing...';
-      msg.className = "message";
+      msg.className = "msg";
 
       try {
         const res = await fetch(API_URL, {
@@ -307,36 +769,36 @@
         });
 
         if (res.status === 409) {
-          msg.className = "message error";
-          msg.textContent = "This email is already subscribed to the same markets.";
+          msg.className = "msg error";
+          msg.textContent = "⚠ You are already subscribed with these exact preferences. Update at least one option to save changes.";
           btn.disabled = false;
           btn.textContent = "Subscribe — it's free";
           return;
         }
 
         if (res.ok) {
-          btn.textContent = "Subscribe — it's free";
           const data = await res.json();
           const updated = data.message && data.message.includes("updated");
-          msg.className = "message success";
+          msg.className = "msg success";
           msg.textContent = updated
-            ? "✓ Preferences updated successfully!"
+            ? "✓ Preferences updated! Check your inbox for confirmation."
             : "✓ Subscribed! Check your inbox for a confirmation email.";
           document.getElementById("form").reset();
           document.querySelectorAll("#markets .toggle-btn").forEach(b => b.classList.add("selected"));
           document.querySelectorAll(".toggle-group[data-group]").forEach(group => {
+            group.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("selected"));
             const first = group.querySelector(".toggle-btn");
             if (first) first.classList.add("selected");
           });
         } else {
           throw new Error(await res.text());
         }
-      } catch (err) {
-        msg.className = "message error";
+      } catch {
+        msg.className = "msg error";
         msg.textContent = "Something went wrong. Please try again.";
+      } finally {
         btn.disabled = false;
         btn.textContent = "Subscribe — it's free";
-
       }
     });
   </script>
